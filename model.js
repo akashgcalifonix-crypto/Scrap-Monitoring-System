@@ -1,3 +1,118 @@
+// js/model.js
+
+// 1. Helper function to categorize materials (Molding vs Speaker vs PCBA etc.)
+function getMaterialCategory(matName) {
+    let m = matName.toUpperCase();
+    if(m.includes("SHELL") || m.includes("HSG") || m.includes("HOUSING") || m.includes("COVER") || m.includes("BUTTON") || m.includes("DECORATIVE") || m.includes("MOLDING")) return "MOLDING";
+    if(m.includes("SPEAKER") || m.includes("DRIVER") || m.includes("SPK")) return "SPEAKER";
+    if(m.includes("PCB") || m.includes("MAIN BOARD") || m.includes("PCBA") || m.includes("SMT")) return "PCBA";
+    if(m.includes("BATTERY") || m.includes("CELL")) return "BATTERY";
+    if(m.includes("FPC")) return "FPC";
+    if(m.includes("SCREEN") || m.includes("LCD") || m.includes("TP")) return "SCREEN";
+    return "OTHERS";
+}
+
+// 2. Open Modal Logic
+function openModelDetails(modelName) {
+    // Show Modal
+    const modal = new bootstrap.Modal(document.getElementById('modelDetailModal'));
+    modal.show();
+    document.getElementById('mdlTitle').innerText = modelName;
+
+    const dFrom = document.getElementById('dateFrom').value;
+    const dTo = document.getElementById('dateTo').value;
+
+    let stats = {
+        budsVal: 0,
+        caseVal: 0,
+        categories: {},
+        materials: []
+    };
+
+    // Filter Raw Data
+    if(rawData.scrap.length > 0) {
+        rawData.scrap.slice(1).forEach(row => {
+            let d = normalizeDate(row[0]);
+            if(!d || d < dFrom || d > dTo) return;
+            
+            let rowModel = (row[8] || "").toString().trim().toUpperCase();
+            if(rowModel !== modelName) return; // Only for clicked model
+
+            let q = parseFloat(row[12])||0;
+            let val = q * (parseFloat(row[11])||0);
+            let matName = (row[7] || row[6] || "Unknown Material").toString(); // Description
+
+            // 1. Split Buds vs Case (Based on material name logic)
+            let mUpper = matName.toUpperCase();
+            if(mUpper.includes("CASE") || mUpper.includes("CHARGING") || mUpper.includes("BOX")) {
+                stats.caseVal += val;
+            } else {
+                stats.budsVal += val;
+            }
+
+            // 2. Categorize (Molding, Speaker, etc.)
+            let cat = getMaterialCategory(matName);
+            if(!stats.categories[cat]) stats.categories[cat] = { qty: 0, val: 0 };
+            stats.categories[cat].qty += q;
+            stats.categories[cat].val += val;
+
+            // 3. Material List
+            stats.materials.push({ name: matName, cat: cat, qty: q, val: val });
+        });
+    }
+
+    // Render Section 1: Top Cards
+    document.getElementById('mdlBudsVal').innerText = formatCurrency(stats.budsVal);
+    document.getElementById('mdlCaseVal').innerText = formatCurrency(stats.caseVal);
+
+    // Render Section 2: Category Table
+    const catBody = document.getElementById('mdlCatTableBody');
+    catBody.innerHTML = "";
+    let sortedCats = Object.keys(stats.categories).sort((a,b) => stats.categories[b].val - stats.categories[a].val);
+    
+    let totalCatQ = 0; let totalCatV = 0;
+
+    sortedCats.forEach(c => {
+        let d = stats.categories[c];
+        totalCatQ += d.qty;
+        totalCatV += d.val;
+        catBody.innerHTML += `<tr>
+            <td class="text-start fw-bold">${c}</td>
+            <td>${d.qty}</td>
+            <td>${formatCurrency(d.val)}</td>
+        </tr>`;
+    });
+    // Add Total Row
+    catBody.innerHTML += `<tr class="bg-light fw-bold border-top">
+        <td class="text-start">Grand Total</td>
+        <td>${totalCatQ}</td>
+        <td>${formatCurrency(totalCatV)}</td>
+    </tr>`;
+
+    // Render Section 3: Material Detail Table (Aggregated by Name)
+    const matBody = document.getElementById('mdlMatTableBody');
+    matBody.innerHTML = "";
+    
+    // Aggregate duplicates
+    let aggMats = {};
+    stats.materials.forEach(m => {
+        if(!aggMats[m.name]) aggMats[m.name] = { name: m.name, cat: m.cat, qty: 0, val: 0 };
+        aggMats[m.name].qty += m.qty;
+        aggMats[m.name].val += m.val;
+    });
+
+    let sortedMats = Object.values(aggMats).sort((a,b) => b.val - a.val);
+
+    sortedMats.forEach(m => {
+        matBody.innerHTML += `<tr>
+            <td><small class="fw-bold text-dark">${m.name}</small></td>
+            <td><span class="badge bg-secondary" style="font-size:0.6rem">${m.cat}</span></td>
+            <td class="text-center fw-bold">${m.qty}</td>
+            <td class="text-center text-danger fw-bold">${formatCurrency(m.val)}</td>
+        </tr>`;
+    });
+}
+
 function renderModelAnalysisTabs() {
     const filterProd = document.getElementById('modelGraphProduct').value;
     const filterType = document.getElementById('modelGraphType').value;
@@ -82,7 +197,11 @@ function renderValueTab(data) {
     const tbody = document.getElementById('modelValueTableBody');
     tbody.innerHTML = "";
     data.forEach((m, idx) => {
-        let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td><td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
+        let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td>
+            <td class="fw-bold text-start align-middle" data-val="${m.model}">
+                <a href="javascript:void(0)" class="model-link text-primary text-decoration-none" onclick="openModelDetails('${m.model}')">${m.model} <i class="fas fa-external-link-alt small ms-1"></i></a>
+            </td>
+            <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td><td class="text-dark align-middle fw-bold" data-val="${m.prodVal}">${formatCurrency(m.prodVal)}</td>
             <td class="align-middle" data-val="${m.caseVal}">${m.caseVal > 0 ? formatCurrency(m.caseVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
             <td class="align-middle" data-val="${m.budsVal}">${m.budsVal > 0 ? formatCurrency(m.budsVal) : '-'}</td><td class="align-middle text-muted small" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
             <td class="text-danger fw-bold align-middle border-start" data-val="${m.overallVal}">${formatCurrency(m.overallVal)}</td><td class="fw-bold align-middle ${m.overallRate>1?'text-danger':'text-success'}" data-val="${m.overallRate}">${m.overallRate.toFixed(2)}%</td></tr>`;
@@ -109,7 +228,11 @@ function renderQtyTab(data) {
     const tbody = document.getElementById('modelQtyTableBody');
     tbody.innerHTML = "";
     data.forEach((m, idx) => {
-        let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td><td class="fw-bold text-start align-middle" data-val="${m.model}">${m.model}</td><td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
+        let row = `<tr><td class="align-middle" data-val="${idx+1}">${idx+1}</td>
+            <td class="fw-bold text-start align-middle" data-val="${m.model}">
+                 <a href="javascript:void(0)" class="model-link text-white text-decoration-none" onclick="openModelDetails('${m.model}')">${m.model} <i class="fas fa-external-link-alt small ms-1"></i></a>
+            </td>
+            <td class="bg-light align-middle fw-bold" data-val="${m.prodQty}">${m.prodQty.toLocaleString()}</td>
             <td class="align-middle text-danger" data-val="${m.caseScrap}">${m.caseScrap > 0 ? m.caseScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.caseRate}">${m.caseRate > 0 ? m.caseRate.toFixed(2)+'%' : '-'}</td>
             <td class="align-middle text-danger" data-val="${m.budsScrap}">${m.budsScrap > 0 ? m.budsScrap : '-'}</td><td class="align-middle small fw-bold" data-val="${m.budsRate}">${m.budsRate > 0 ? m.budsRate.toFixed(2)+'%' : '-'}</td>
             <td class="text-danger fw-bold align-middle border-start" data-val="${m.totalScrap}">${m.totalScrap.toLocaleString()}</td></tr>`;
