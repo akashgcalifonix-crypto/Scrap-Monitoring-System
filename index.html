@@ -6,7 +6,7 @@
     <title>Califonix Quality Dashboard</title>
 
     <!-- Libraries -->
-    <link href="https://cdn.delivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -151,5 +151,681 @@
                                 <th><select class="sort-select" onchange="triggerSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
                                 <th><select class="sort-select" onchange="triggerSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
                                 <th><select class="sort-select" onchange="triggerSort(6, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                                <th><select class="sort-select" onchange="triggerSort(8, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Low-High</option><option value="desc">High-Low</option></select></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                <th><select class="sort-select" onchange="triggerSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value
+    <!-- NEW SECTION: CATEGORY & FLOOR ANALYSIS -->
+    <div id="category-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Category & Floor Analysis</h3>
+        </div>
+        
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-4 align-items-center flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Floor Filter</label>
+                <select id="caFloor" class="form-select form-select-sm" style="width:200px" onchange="renderCategoryAnalysis()">
+                    <option value="ALL">All Floors</option>
+                    <option value="1">1st Floor (Line 1-8)</option>
+                    <option value="2">2nd Floor (Line 9-16)</option>
+                    <option value="B">Basement (Line 17-24)</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Process / RMD</label>
+                <select id="caType" class="form-select form-select-sm" style="width:200px" onchange="renderCategoryAnalysis()">
+                    <option value="ALL">All (Process + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Category Wise Scrap Value</div>
+                    <div class="card-body">
+                        <div style="height: 350px;">
+                            <canvas id="caChartCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Category Details</div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered table-striped text-center mb-0 custom-table">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Scrap Value (₹)</th>
+                                    <th>Scrap Rate %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="caTableBody">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END NEW SECTION -->
+
+    <!-- WEEKLY COMPARISON REPORT -->
+    <div id="weekly-comparison-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Weekly Comparison Report</h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-3 bg-white mb-4">
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label class="fw-bold text-success small">Week 1 (Base)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom1" class="form-control">
+                        <input type="date" id="wcTo1" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-warning small">Week 2</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom2" class="form-control">
+                        <input type="date" id="wcTo2" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-info small">Week 3</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom3" class="form-control">
+                        <input type="date" id="wcTo3" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="fw-bold text-primary small">Week 4</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" id="wcFrom4" class="form-control">
+                        <input type="date" id="wcTo4" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row align-items-end g-3">
+                <div class="col-md-4">
+                    <label class="small fw-bold">Product Filter</label>
+                    <select id="wcProductInput" class="form-select form-select-sm">
+                        <option value="ALL">All Products</option>
+                        <option value="EARBUDS">Earbuds</option>
+                        <option value="CHARGING CASE">Charging Case</option>
+                        <option value="DASHCAM">Dashcam</option>
+                        <option value="SMART WATCH">Smart Watch</option>
+                        <option value="HEADPHONE">Headphone</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold">Select Comparison (Difference)</label>
+                    <select id="wcDiffSelect" class="form-select form-select-sm">
+                        <option value="none">No Difference Column</option>
+                        <option value="1_0">Week 2 vs Week 1</option>
+                        <option value="2_1">Week 3 vs Week 2</option>
+                        <option value="3_2">Week 4 vs Week 3</option>
+                        <option value="3_0">Week 4 vs Week 1</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-dark btn-sm w-100" onclick="renderWeeklyComparison()"><i class="fas fa-exchange-alt me-2"></i>Compare Data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Performance Summary</div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered text-center mb-0">
+                            <thead class="bg-light">
+                                <tr id="wcTableHeaders">
+                                    <th>Metric</th>
+                                    <th class="comp-header-1">Week 1</th>
+                                    <th class="comp-header-2">Week 2</th>
+                                    <th class="comp-header-3">Week 3</th>
+                                    <th class="comp-header-4">Week 4</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wcTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Line Wise Scrap Value Comparison</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-striped table-hover text-center mb-0 custom-table">
+                                <thead class="bg-dark text-white" style="position: sticky; top: 0;">
+                                    <tr id="wcLineTableHeaders">
+                                        <th>Line No</th>
+                                        <th class="comp-header-1">W1 Scrap (₹)</th>
+                                        <th class="comp-header-2">W2 Scrap (₹)</th>
+                                        <th class="comp-header-3">W3 Scrap (₹)</th>
+                                        <th class="comp-header-4">W4 Scrap (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wcLineTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Scrap Value Trend Chart</div>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="wcChartCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL ANALYSIS -->
+    <div id="detail-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark">Detail Analysis & History</h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4 bg-white">
+            <div class="d-flex gap-4 mb-4 align-items-end flex-wrap">
+                <div>
+                    <label class="fw-bold small text-secondary">Product Wise</label>
+                    <select id="daProduct" class="form-select" style="width: 200px;" onchange="renderDetailLines()">
+                        <option value="EARBUDS">Earbuds</option>
+                        <option value="CHARGING CASE">Charging Case</option>
+                        <option value="SMART WATCH">Smart Watch</option>
+                        <option value="DASHCAM">Dashcam</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="fw-bold small text-secondary">Process Selection</label>
+                    <select id="daType" class="form-select" style="width: 200px;" onchange="renderDetailLines()">
+                        <option value="ALL">Total (Proc + RMD)</option>
+                        <option value="PROCESS">Process Only</option>
+                        <option value="RMD">RMD Only</option>
+                    </select>
+                </div>
+                <div class="text-muted small ms-auto align-self-center">
+                    Select a Line below to view detailed history
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-dark border-bottom pb-2">Select Line (1-24)</h6>
+            <div class="line-grid" id="lineGridContainer"></div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR LINE HISTORY -->
+    <div class="modal fade" id="lineHistoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="lineModalTitle">Line History</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-daily">Daily Trend</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-weekly">Week Wise Report</button></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- DAILY TAB -->
+                        <div class="tab-pane fade show active" id="tab-daily">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-header bg-white fw-bold small">Scrap Value & Rate Trend (Date Wise)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-sm">
+                                                <canvas id="daTrendCanvas"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-primary">PCBA Analysis (Qty & Rate)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daPcbaChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-warning">Speaker Analysis (Qty & Rate)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daSpkrChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-white fw-bold small text-success">Battery Analysis (Qty & Rate)</div>
+                                        <div class="card-body">
+                                            <div class="chart-container-xs">
+                                                <canvas id="daBattChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-header bg-white fw-bold small">Model Wise Scrap Breakdown</div>
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive" style="max-height:200px; overflow-y:auto;">
+                                                <table class="table table-sm table-bordered table-striped text-center mb-0" style="font-size:0.8rem;">
+                                                    <thead class="bg-dark text-white" style="position:sticky; top:0;">
+                                                        <tr>
+                                                            <th>Model Name</th>
+                                                            <th>Total Scrap Value (₹)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="daModelTableBody"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WEEKLY TAB -->
+                        <div class="tab-pane fade" id="tab-weekly">
+                            <div class="card shadow-sm border-0 mb-3">
+                                <div class="card-header bg-white fw-bold small d-flex justify-content-between align-items-center">
+                                    <span>Week Wise Performance</span>
+                                    <div class="d-flex gap-2">
+                                        <input type="date" id="lineWFrom" class="form-control form-control-sm" style="width:130px">
+                                        <input type="date" id="lineWTo" class="form-control form-control-sm" style="width:130px">
+                                        <button class="btn btn-sm btn-primary" onclick="filterLineWeeklyTable()">Filter</button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-bordered table-striped text-center mb-0 custom-table">
+                                        <thead class="bg-dark text-white">
+                                            <tr>
+                                                <th>Week Range</th>
+                                                <th>Prod Qty</th>
+                                                <th>Scrap Value</th>
+                                                <th>Scrap Rate %</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="daWeeklyTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-header bg-white fw-bold small d-flex justify-content-between align-items-center">
+                                    <span>All Materials Breakdown</span>
+                                    <select id="matSort" class="form-select form-select-sm" style="width:200px;" onchange="filterMaterials()">
+                                        <option value="val_desc" selected>Sort Value: High - Low</option>
+                                        <option value="val_asc">Sort Value: Low - High</option>
+                                        <option value="qty_desc">Sort Qty: High - Low</option>
+                                        <option value="qty_asc">Sort Qty: Low - High</option>
+                                    </select>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover text-center mb-0" style="font-size:0.8rem">
+                                            <thead class="bg-primary text-white" style="position:sticky; top:0; z-index:10;">
+                                                <tr>
+                                                    <th>Material Description</th>
+                                                    <th>Model</th>
+                                                    <th>Type</th>
+                                                    <th style="width:100px;">Total Qty</th>
+                                                    <th style="width:120px;">Total Value (₹)</th>
+                                                </tr>
+                                                <tr class="bg-light">
+                                                    <th><input type="text" id="sDesc" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sModel" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sType" class="filter-input" placeholder="Search..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sQty" class="filter-input" placeholder="Filter..." onkeyup="filterMaterials()"></th>
+                                                    <th><input type="text" id="sVal" class="filter-input" placeholder="Filter..." onkeyup="filterMaterials()"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="daMatTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODEL ANALYSIS -->
+    <div id="model-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Model Wise Analysis</h3>
+        </div>
+
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-4 align-items-center flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Product</label>
+                <select id="modelGraphProduct" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">All Products</option>
+                    <option value="EARBUDS">Earbuds</option>
+                    <option value="CHARGING CASE">Charging Case</option>
+                    <option value="SMART WATCH">Smart Watch</option>
+                    <option value="DASHCAM">Dashcam</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Type</label>
+                <select id="modelGraphType" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">Total (Proc + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Component</label>
+                <select id="modelGraphComp" class="form-select form-select-sm" style="width:150px" onchange="renderModelAnalysisTabs()">
+                    <option value="ALL">All Components</option>
+                    <option value="PCBA">PCBA</option>
+                    <option value="SPEAKER">Speaker</option>
+                    <option value="BATTERY">Battery</option>
+                </select>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mb-3" id="modelTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="val-tab" data-bs-toggle="tab" data-bs-target="#val-content" type="button" role="tab" aria-selected="true"><i class="fas fa-rupee-sign me-2"></i>Value Wise Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="qty-tab" data-bs-toggle="tab" data-bs-target="#qty-content" type="button" role="tab" aria-selected="false"><i class="fas fa-boxes me-2"></i>Qty Wise Analysis</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="modelTabsContent">
+            
+            <!-- TAB 1: VALUE WISE -->
+            <div class="tab-pane fade show active" id="val-content" role="tabpanel">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold py-2 text-success">Top Models by Scrap Value (INR)</div>
+                    <div class="card-body">
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="modelValueCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Value Wise Data</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped custom-table text-center mb-0">
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle">#</th>
+                                        <th rowspan="2" class="align-middle">Model Name</th>
+                                        <th rowspan="2" class="align-middle">Prod Qty (Sets)</th>
+                                        <th rowspan="2" class="align-middle">Prod Value (₹)</th>
+                                        <th colspan="2" class="bg-white text-dark">Charging case</th>
+                                        <th colspan="2" class="bg-white text-dark">Earbuds</th>
+                                        <th rowspan="2" class="align-middle">Overall process</th>
+                                        <th rowspan="2" class="align-middle">Scrap rate %</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light text-dark">Scrap Value (₹)</th>
+                                        <th class="bg-light text-dark">Scrap Rate %</th>
+                                        <th class="bg-light text-dark">Scrap Value (₹)</th>
+                                        <th class="bg-light text-dark">Scrap Rate %</th>
+                                    </tr>
+                                    <tr class="bg-secondary p-0">
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(0, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">1-9</option><option value="desc">9-1</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(1, 'text', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(2, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(3, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(4, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(5, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(6, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(7, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(8, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(9, 'num', this, 'modelValueTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelValueTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QTY WISE -->
+            <div class="tab-pane fade" id="qty-content" role="tabpanel">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold py-2 text-primary">Top Models by Scrap Quantity</div>
+                    <div class="card-body">
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="modelQtyCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Qty Wise Data</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped custom-table text-center mb-0">
+                                <thead class="bg-primary text-white">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle">#</th>
+                                        <th rowspan="2" class="align-middle">Model Name</th>
+                                        <th rowspan="2" class="align-middle">Prod Qty (Sets)</th>
+                                        <th colspan="2" class="bg-white text-dark">Charging case (1x)</th>
+                                        <th colspan="2" class="bg-white text-dark">Earbuds (2x)</th>
+                                        <th rowspan="2" class="align-middle">Total Scrap Qty</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light text-dark">Scrap Qty</th>
+                                        <th class="bg-light text-dark">Rate %</th>
+                                        <th class="bg-light text-dark">Scrap Qty</th>
+                                        <th class="bg-light text-dark">Rate %</th>
+                                    </tr>
+                                    <tr class="bg-secondary p-0">
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(0, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">1-9</option><option value="desc">9-1</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(1, 'text', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(2, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(3, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(4, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(5, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(6, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                        <th class="p-1"><select class="sort-select" onchange="triggerModelSort(7, 'num', this, 'modelQtyTableBody')"><option value="" disabled selected>Sort</option><option value="asc">Low</option><option value="desc">High</option></select></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelQtyTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LINE ANALYSIS -->
+    <div id="line-analysis-section" class="content-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark">Line Wise Component Analysis</h3>
+        </div>
+
+        <div class="bg-white p-3 rounded shadow-sm mb-4 d-flex gap-3 align-items-center flex-wrap">
+            <div>
+                <label class="small fw-bold text-secondary">Product</label>
+                <select id="laProduct" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">All Products</option>
+                    <option value="EARBUDS">Earbuds</option>
+                    <option value="CHARGING CASE">Charging Case</option>
+                    <option value="SMART WATCH">Smart Watch</option>
+                    <option value="DASHCAM">Dashcam</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Type</label>
+                <select id="laType" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">Total (Proc + RMD)</option>
+                    <option value="PROCESS">Process Only</option>
+                    <option value="RMD">RMD Only</option>
+                </select>
+            </div>
+            <div>
+                <label class="small fw-bold text-secondary">Graph Focus</label>
+                <select id="laComponent" class="form-select form-select-sm" style="width:160px" onchange="processAndRender()">
+                    <option value="ALL">All Components</option>
+                    <option value="PCBA">PCBA Only</option>
+                    <option value="SPEAKER">Speaker Only</option>
+                    <option value="BATTERY">Battery Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-2">Pareto Analysis: Scrap Qty & Rate %</div>
+            <div class="card-body">
+                <div style="height: 400px; width: 100%;">
+                    <canvas id="componentAnalysisCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3"><i class="fas fa-table me-2"></i> Detailed Data</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped custom-table text-center mb-0" id="compTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Line No
+                                    <select class="sort-select mt-1" onchange="triggerCompSort(0, 'text', this)"><option value="" disabled selected>Sort</option><option value="asc">A-Z</option><option value="desc">Z-A</option></select>
+                                </th>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Product
+                                    <select class="sort-select mt-1" id="laTableProdFilter" onchange="applyCompProdFilter(this)">
+                                        <option value="">All</option>
+                                        <option value="EARBUDS">Earbuds</option>
+                                        <option value="CHARGING CASE">Case</option>
+                                        <option value="SMART WATCH">Watch</option>
+                                        <option value="DASHCAM">Dashcam</option>
+                                    </select>
+                                </th>
+                                <th rowspan="2" class="align-middle bg-dark text-white">Prod Qty
+                                    <select class="sort-select mt-1" onchange="triggerCompSort(2, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select>
+                                </th>
+                                <th colspan="2" class="bg-primary text-white">PCBA</th>
+                                <th colspan="2" class="bg-warning text-dark">SPEAKER</th>
+                                <th colspan="2" class="bg-success text-white">BATTERY</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(3, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(5, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(4, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Qty <select class="sort-select" onchange="triggerCompSort(7, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                                <th class="bg-light text-dark">Rate % <select class="sort-select" onchange="triggerCompSort(8, 'num', this)"><option value="" disabled selected>Sort</option><option value="asc">Small &#10142; Large</option><option value="desc">Large &#10142; Small</option></select></th>
+                            </tr>
+                        </thead>
+                        <tbody id="compTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Sections -->
+    <div id="upload-section" class="content-section" style="display:none;">
+        <h4 class="mb-4">Bulk Upload</h4>
+        <div class="card p-5 text-center shadow-sm">
+            <div class="border dashed p-5 bg-white rounded"><input type="file" id="uploadFile" class="form-control w-50 mx-auto mb-3" accept=".xlsx"><button class="btn btn-primary" onclick="uploadExcel()">Upload</button></div>
+        </div>
+    </div>
+
+    <!-- PRODUCTION ENTRY SECTION -->
+    <div id="production-section" class="content-section" style="display:none;">
+        <h4 class="mb-4">Production Entry</h4>
+        <div class="card p-4 shadow-sm" style="max-width: 500px;">
+            <form id="prodForm">
+                <label class="form-label fw-bold">Date</label>
+                <input type="date" id="pDate" class="form-control mb-3">
+                <label class="form-label fw-bold">Line Number</label>
+                <input type="text" id="pLine" class="form-control mb-3" placeholder="e.g. 303">
+                <label class="form-label fw-bold">Product Type</label>
+                <select id="pProduct" class="form-select mb-3">
+                    <option value="" disabled selected>Select Product</option>
+                    <option value="Earbuds & Charging case">Earbuds & Charging case</option>
+                    <option value="Dashcam">Dashcam</option>
+                    <option value="Smart Watch">Smart Watch</option>
+                    <option value="Headphone">Headphone</option>
+                    <option value="Other">Other</option>
+                </select>
+                <label class="form-label fw-bold">Model</label>
+                <select id="pModel" class="form-select mb-3"></select>
+                <label class="form-label fw-bold">Output Qty</label>
+                <input type="number" id="pOut" class="form-control mb-3" placeholder="0">
+                <button type="button" class="btn btn-success w-100" onclick="saveProduction()">Save Production</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- BootStrap JS (Required for Tabs) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Project Logic Files -->
+<script src="core.js"></script>
+<script src="dashboard.js"></script>
+<script src="category.js"></script>
+<script src="weekly.js"></script>
+<script src="detail.js"></script>
+<script src="model.js"></script>
+<script src="line.js"></script>
+<script src="forms.js"></script>
+
+</body>
+</html>
