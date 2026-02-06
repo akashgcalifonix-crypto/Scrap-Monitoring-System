@@ -1,6 +1,10 @@
 // js/model.js
 
-// 1. Helper function to categorize materials (Molding vs Speaker vs PCBA etc.)
+// Global variables for Export
+let currentModelExportData = [];
+let currentModelName = "";
+
+// 1. Helper function to categorize materials
 function getMaterialCategory(matName) {
     let m = matName.toUpperCase();
     if(m.includes("SHELL") || m.includes("HSG") || m.includes("HOUSING") || m.includes("COVER") || m.includes("BUTTON") || m.includes("DECORATIVE") || m.includes("MOLDING")) return "MOLDING";
@@ -14,10 +18,31 @@ function getMaterialCategory(matName) {
 
 // 2. Open Modal Logic
 function openModelDetails(modelName) {
-    // Show Modal
-    const modal = new bootstrap.Modal(document.getElementById('modelDetailModal'));
+    currentModelName = modelName;
+    const modalEl = document.getElementById('modelDetailModal');
+    const modal = new bootstrap.Modal(modalEl);
     modal.show();
+    
     document.getElementById('mdlTitle').innerText = modelName;
+
+    // --- ADD EXCEL BUTTON TO HEADER DYNAMICALLY ---
+    const header = modalEl.querySelector('.modal-header');
+    
+    // Remove old button if exists (to prevent duplicates)
+    let oldBtn = document.getElementById('btnModelExcel');
+    if(oldBtn) oldBtn.remove();
+
+    // Create new button
+    let btn = document.createElement('button');
+    btn.id = 'btnModelExcel';
+    btn.className = 'btn btn-success btn-sm ms-auto me-3';
+    btn.innerHTML = '<i class="fas fa-file-excel me-1"></i> Download Excel';
+    btn.onclick = exportModelExcel;
+
+    // Insert button before the "X" close button
+    let closeBtn = header.querySelector('.btn-close');
+    header.insertBefore(btn, closeBtn);
+    // ----------------------------------------------
 
     const dFrom = document.getElementById('dateFrom').value;
     const dTo = document.getElementById('dateTo').value;
@@ -42,7 +67,7 @@ function openModelDetails(modelName) {
             let val = q * (parseFloat(row[11])||0);
             let matName = (row[7] || row[6] || "Unknown Material").toString(); // Description
 
-            // 1. Split Buds vs Case (Based on material name logic)
+            // 1. Split Buds vs Case
             let mUpper = matName.toUpperCase();
             if(mUpper.includes("CASE") || mUpper.includes("CHARGING") || mUpper.includes("BOX")) {
                 stats.caseVal += val;
@@ -50,7 +75,7 @@ function openModelDetails(modelName) {
                 stats.budsVal += val;
             }
 
-            // 2. Categorize (Molding, Speaker, etc.)
+            // 2. Categorize
             let cat = getMaterialCategory(matName);
             if(!stats.categories[cat]) stats.categories[cat] = { qty: 0, val: 0 };
             stats.categories[cat].qty += q;
@@ -60,6 +85,9 @@ function openModelDetails(modelName) {
             stats.materials.push({ name: matName, cat: cat, qty: q, val: val });
         });
     }
+
+    // Save data for Export
+    currentModelExportData = stats.materials;
 
     // Render Section 1: Top Cards
     document.getElementById('mdlBudsVal').innerText = formatCurrency(stats.budsVal);
@@ -112,6 +140,33 @@ function openModelDetails(modelName) {
         </tr>`;
     });
 }
+
+// 3. New Export Function
+function exportModelExcel() {
+    if(!currentModelExportData || currentModelExportData.length === 0) {
+        Swal.fire("No Data", "No scrap data available to export.", "warning");
+        return;
+    }
+
+    // Prepare data for Excel (Aggregate duplicates for cleaner report)
+    let aggData = {};
+    currentModelExportData.forEach(m => {
+        if(!aggData[m.name]) aggData[m.name] = { Material: m.name, Category: m.cat, Qty: 0, Value: 0 };
+        aggData[m.name].Qty += m.qty;
+        aggData[m.name].Value += m.val;
+    });
+
+    let finalData = Object.values(aggData).sort((a,b) => b.Value - a.Value);
+
+    let ws = XLSX.utils.json_to_sheet(finalData);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Model Defect Details");
+    XLSX.writeFile(wb, `${currentModelName}_Defect_Analysis.xlsx`);
+}
+
+// ----------------------------------------
+// EXISTING FUNCTIONS
+// ----------------------------------------
 
 function renderModelAnalysisTabs() {
     const filterProd = document.getElementById('modelGraphProduct').value;
