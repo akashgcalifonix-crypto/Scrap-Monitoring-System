@@ -66,3 +66,9 @@ body { background-color: var(--bg); font-family: 'Poppins', sans-serif; font-siz
 .comp-header-3 { background-color: #f3e5f5; color: #4a148c; border-bottom: 2px solid #4a148c; }
 .comp-header-4 { background-color: #e3f2fd; color: #0d47a1; border-bottom: 2px solid #0d47a1; }
 .comp-header-diff { background-color: #212529; color: #fff; border-bottom: 2px solid #000; }
+
+/* MODEL LINK HOVER */
+.model-link:hover {
+    text-decoration: underline !important;
+    font-weight: 800;
+}
